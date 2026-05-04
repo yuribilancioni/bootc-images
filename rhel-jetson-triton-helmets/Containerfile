@@ -118,11 +118,37 @@ RUN systemctl enable tailscale-login.service
 
 # install git lfs to upload large model files to github repo
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | bash && \
-    dnf -y install git-lfs 
+    dnf -y install git-lfs && \
+    dnf -y clean all
 
 # Pull model from OCI registry
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v1 /models/ /etc/models
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v2 /models/ /etc/models
+
+# enable tailscale port 
+RUN firewall-offline-cmd --add-port=41641/udp
+
+# Podman-compose
+# Install packages from EPEL
+RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
+    && dnf clean all
+RUN dnf install -y \
+    podman-compose \
+    btop \
+    && dnf clean all
+
+# Flightctl CLI and agent
+RUN dnf config-manager --add-repo https://rpm.flightctl.io/flightctl-epel.repo
+RUN dnf install -y \
+    flightctl-agent \
+    flightctl-cli \
+    && dnf clean all
+
+# Enable agent
+RUN systemctl enable flightctl-agent.service
+
+# Disable auto-updating
+RUN systemctl mask bootc-fetch-apply-updates.timer
 
 #checks for errors in building
 RUN bootc container lint
