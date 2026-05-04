@@ -92,10 +92,11 @@ EOF
 ## adding podman-compose, NetworkManager wifi, iwlwifi firmware, python3-pip, cockpit packages
 ## https://docs.fedoraproject.org/en-US/fedora-coreos/sysconfig-enabling-wifi/
  RUN dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
-     dnf -y install pciutils usbutils python3-pip podman-compose NetworkManager-wifi iwl* git vim && \
+     dnf -y install pciutils usbutils python3-pip podman-compose NetworkManager-wifi iwl* git vim cockpit cockpit-podman && \
      dnf -y clean all && \
      rm -rf /var/{cache,log} /var/lib/{dnf,rhsm} && \
-     systemctl enable podman.service
+     systemctl enable podman.service && \
+     systemctl enable cockpit.socket
 
 
 ### Copy files
@@ -125,17 +126,12 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.r
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v1 /models/ /etc/models
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v2 /models/ /etc/models
 
+# install and enable firewall 
+RUN dnf -y install firewalld && \
+    dnf -y clean all
+
 # enable tailscale port 
 RUN firewall-offline-cmd --add-port=41641/udp
-
-# Podman-compose
-# Install packages from EPEL
-RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm \
-    && dnf clean all
-RUN dnf install -y \
-    podman-compose \
-    btop \
-    && dnf clean all
 
 # Flightctl CLI and agent
 RUN dnf config-manager --add-repo https://rpm.flightctl.io/flightctl-epel.repo
