@@ -124,7 +124,7 @@ RUN chmod -R 600 /etc/NetworkManager/system-connections/ && \
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v1 /models/ /etc/models
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v2 /models/ /etc/models
 
-RUN dnf config-manager --set-enabled edge-manager-1.0.2-for-rhel-9-$(uname -m)-rpms && \
+RUN dnf config-manager --set-enabled edge-manager-1.0-for-rhel-9-$(uname -m)-rpms && \
     dnf -y install flightctl-agent && \
     dnf -y clean all && \
     systemctl enable flightctl-agent.service && \
