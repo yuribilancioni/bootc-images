@@ -124,9 +124,14 @@ RUN chmod -R 600 /etc/NetworkManager/system-connections/ && \
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v1 /models/ /etc/models
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v2 /models/ /etc/models
 
-RUN dnf config-manager --set-enabled edge-manager-1.0-for-rhel-9-$(uname -m)-rpms && \
-    dnf -y install flightctl-agent && \
-    dnf -y clean all && \
+#RUN dnf config-manager --set-enabled edge-manager-1.0-for-rhel-9-$(uname -m)-rpms && \
+#    dnf -y install flightctl-agent && \
+# Flightctl CLI and agent
+RUN dnf config-manager --add-repo https://rpm.flightctl.io/flightctl-epel.repo
+RUN dnf install -y \
+    flightctl-agent-1.0.2-1 \
+    flightctl-cli-1.0.2-1 \
+    && dnf clean all && \
     systemctl enable flightctl-agent.service && \
     systemctl mask bootc-fetch-apply-updates.timer 
 
