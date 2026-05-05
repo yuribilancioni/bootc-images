@@ -129,11 +129,11 @@ RUN chmod -R 600 /etc/NetworkManager/system-connections/ && \
 # Flightctl CLI and agent
 RUN dnf config-manager --add-repo https://rpm.flightctl.io/flightctl-epel.repo
 RUN dnf install -y \
-    flightctl-agent-1.0.2-1 \
-    flightctl-cli-1.0.2-1 \
+    flightctl-agent-1.0.2-1.el9.aarch64.rpm \
+    flightctl-cli-1.0.2-1.el9.aarch64.rpm \
     && dnf clean all && \
     systemctl enable flightctl-agent.service && \
-    systemctl mask bootc-fetch-apply-updates.timer 
+    systemctl mask bootc-fetch-apply-updates.timer
 
 #checks for errors in building
 RUN bootc container lint
