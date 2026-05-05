@@ -92,11 +92,10 @@ EOF
 ## adding podman-compose, NetworkManager wifi, iwlwifi firmware, python3-pip, cockpit packages
 ## https://docs.fedoraproject.org/en-US/fedora-coreos/sysconfig-enabling-wifi/
  RUN dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
-     dnf -y install pciutils usbutils python3-pip podman-compose NetworkManager-wifi iwl* git vim cockpit cockpit-podman && \
+     dnf -y install pciutils usbutils python3-pip podman-compose NetworkManager-wifi cockpit cockpit-podman iwl* git vim && \
      dnf -y clean all && \
      rm -rf /var/{cache,log} /var/lib/{dnf,rhsm} && \
-     systemctl enable podman.service && \
-     systemctl enable cockpit.socket
+     systemctl enable podman.service
 
 
 ### Copy files
@@ -108,43 +107,28 @@ RUN chmod -R 600 /etc/NetworkManager/system-connections/ && \
     mkdir -p /etc/models
 
 # adding and configuring Tailscale for VPN access
-RUN dnf config-manager -y --add-repo https://pkgs.tailscale.com/stable/rhel/9/tailscale.repo && \
-    dnf -y install tailscale && \
-    dnf -y clean all
-RUN systemctl enable tailscaled
+#RUN dnf config-manager -y --add-repo https://pkgs.tailscale.com/stable/rhel/9/tailscale.repo && \
+#    dnf -y install tailscale && \
+#    dnf -y clean all
+#RUN systemctl enable tailscaled
 
 # set automatic Taiscale login using script at boot time
 #COPY tailscale-login.service /etc/systemd/system/tailscale-login.service
-RUN systemctl enable tailscale-login.service
+#RUN systemctl enable tailscale-login.service
 
 # install git lfs to upload large model files to github repo
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | bash && \
-    dnf -y install git-lfs && \
-    dnf -y clean all
+#RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | bash && \
+#    dnf -y install git-lfs 
 
 # Pull model from OCI registry
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v1 /models/ /etc/models
 #COPY --from=quay.io/luisarizmendi/modelcar-hardhat:v2 /models/ /etc/models
 
-# install and enable firewall 
-RUN dnf -y install firewalld && \
-    dnf -y clean all
-
-# enable tailscale port 
-RUN firewall-offline-cmd --add-port=41641/udp
-
-# Flightctl CLI and agent
-RUN dnf config-manager --add-repo https://rpm.flightctl.io/flightctl-epel.repo
-RUN dnf install -y \
-    flightctl-agent \
-    flightctl-cli \
-    && dnf clean all
-
-# Enable agent
-RUN systemctl enable flightctl-agent.service
-
-# Disable auto-updating
-RUN systemctl mask bootc-fetch-apply-updates.timer
+RUN dnf config-manager --set-enabled edge-manager-1.0.2-for-rhel-9-$(uname -m)-rpms && \
+    dnf -y install flightctl-agent && \
+    dnf -y clean all && \
+    systemctl enable flightctl-agent.service && \
+    systemctl mask bootc-fetch-apply-updates.timer 
 
 #checks for errors in building
 RUN bootc container lint
